@@ -84,10 +84,10 @@ Use the **Task tool** with `subagent_type="general-purpose"` to explore Linear t
 
 **Sub-agent prompt:**
 ```
-Explore Beads to understand current work state for this project. Your job is to read thoroughly and return a curated summary.
+Explore Prog to understand current work state for this project. Your job is to read thoroughly and return a curated summary.
 
 STEPS:
-1. Run `bd ready` to get ready tasks
+1. Run `prog ready` to get ready tasks
 2. Get ALL issues in "In Progress" status - read full details for each
 3. Get ALL issues in "Ready" status - read full details for each
 4. Get issues in "Backlog" status - read full details for top candidates
@@ -176,7 +176,7 @@ If selected, briefly log: `Autopilot: Selected [ID] - [Title]`
 **Autopilot mode:** Once auto-selection is made
 
 - If it was the "In Progress" issue, you already have the full spec from the sub-agent
-- If it's a different issue, call beads to load the full spec (one call is fine)
+- If it's a different issue, call prog  to load the full spec (one call is fine)
 - Update issue status to "In Progress" if not already
 
 ### 5. Load Technical Context (if needed)
@@ -190,8 +190,8 @@ Only load these if needed for the current task - don't over-read.
 ## Notes
 
 - This is read-only context loading - don't make any changes
-- Beads is the source of truth for work status
-- If Beads is unavailable, fall back to asking user what they want to work on
+- Prog is the source of truth for work status
+- If Prog is unavailable, fall back to asking user what they want to work on
 - The sub-agent reads many tickets but only returns what matters
 - Main context stays clean: CLAUDE.md/AGENTS.md/AGENTS-REFERENCE.md + curated summary + chosen issue spec
 
