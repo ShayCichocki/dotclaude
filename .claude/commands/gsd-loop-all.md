@@ -1,5 +1,5 @@
 ---
-name: gsd:loop-all
+name: gsd-loop-all
 description: Run plan/execute/verify loop on ALL phases until done. Use --auto for hands-off "sleep and wake up to done" mode.
 arguments:
   - name: flags
