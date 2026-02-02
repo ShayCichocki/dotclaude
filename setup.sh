@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # Colors for output
@@ -13,7 +13,7 @@ warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 error() { echo -e "${RED}[ERROR]${NC} $1"; }
 step() { echo -e "\n${BLUE}==>${NC} $1"; }
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 
 # ─────────────────────────────────────────────────────────────
 # Helper Functions
@@ -53,7 +53,67 @@ else
     elif [[ "$OS" == "macos" ]]; then
         eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"
     fi
-    info "  ✓ Homebrew installed"
+
+    # Persist brew to shell config
+    info "  Configuring shell environment..."
+
+    # Detect shell and config file
+    SHELL_NAME=$(basename "$SHELL")
+    case "$SHELL_NAME" in
+        bash)
+            SHELL_CONFIG="$HOME/.bashrc"
+            ;;
+        zsh)
+            SHELL_CONFIG="$HOME/.zshrc"
+            ;;
+        *)
+            SHELL_CONFIG="$HOME/.profile"
+            ;;
+    esac
+
+    # Add brew shellenv to config if not already present
+    BREW_INIT_LINE='eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
+    if [[ "$OS" == "macos" ]]; then
+        BREW_INIT_LINE='eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"'
+    fi
+
+    if ! grep -q "brew shellenv" "$SHELL_CONFIG" 2>/dev/null; then
+        echo "" >> "$SHELL_CONFIG"
+        echo "# Homebrew" >> "$SHELL_CONFIG"
+        echo "$BREW_INIT_LINE" >> "$SHELL_CONFIG"
+        info "  ✓ Added Homebrew to $SHELL_CONFIG"
+    else
+        info "  ✓ Homebrew already in $SHELL_CONFIG"
+    fi
+
+    # Install build dependencies on Linux
+    if [[ "$OS" == "linux" ]]; then
+        info "  Checking build dependencies..."
+        if command -v sudo &> /dev/null; then
+            if ! dpkg -l | grep -q build-essential 2>/dev/null; then
+                info "  Installing build-essential..."
+                sudo apt-get update -qq
+                sudo apt-get install -y build-essential
+                info "  ✓ build-essential installed"
+            else
+                info "  ✓ build-essential already installed"
+            fi
+        else
+            warn "  sudo not available, skipping build-essential"
+        fi
+    fi
+
+    # Install GCC (recommended by Homebrew)
+    info "  Checking GCC..."
+    if brew list gcc &>/dev/null; then
+        info "  ✓ GCC already installed"
+    else
+        info "  Installing GCC (recommended by Homebrew)..."
+        brew install gcc
+        info "  ✓ GCC installed"
+    fi
+
+    info "  ✓ Homebrew installed and configured"
 fi
 
 # ─────────────────────────────────────────────────────────────
@@ -93,8 +153,8 @@ install_optional() {
     if has_cmd "$cmd"; then
         info "  ✓ $cmd already installed"
     else
-        read -p "  Install $pkg? [y/N] " -n 1 -r
-        echo
+        printf "  Install $pkg? [y/N] "
+        read -r REPLY
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             brew install "$pkg"
             info "  ✓ $pkg installed"
