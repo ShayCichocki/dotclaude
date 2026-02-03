@@ -1,13 +1,25 @@
 local M = {}
 
 function M.setup()
-  local lspconfig = require("lspconfig")
   local cmp_nvim_lsp = require("cmp_nvim_lsp")
   local capabilities = cmp_nvim_lsp.default_capabilities()
 
+  -- Check if we're using Neovim 0.11+ with new vim.lsp.config API
+  local has_new_api = vim.lsp.config ~= nil
+
+  -- Helper function to setup LSP servers with backwards compatibility
+  local function setup_lsp(server_name, config)
+    config.capabilities = capabilities
+    if has_new_api then
+      vim.lsp.config(server_name, config)
+    else
+      local lspconfig = require("lspconfig")
+      lspconfig[server_name].setup(config)
+    end
+  end
+
   -- TypeScript/JavaScript
-  lspconfig.ts_ls.setup({
-    capabilities = capabilities,
+  setup_lsp("ts_ls", {
     settings = {
       typescript = {
         inlayHints = {
@@ -35,8 +47,7 @@ function M.setup()
   })
 
   -- Go
-  lspconfig.gopls.setup({
-    capabilities = capabilities,
+  setup_lsp("gopls", {
     settings = {
       gopls = {
         analyses = {
@@ -50,8 +61,7 @@ function M.setup()
   })
 
   -- Rust
-  lspconfig.rust_analyzer.setup({
-    capabilities = capabilities,
+  setup_lsp("rust_analyzer", {
     settings = {
       ["rust-analyzer"] = {
         cargo = {
@@ -69,8 +79,7 @@ function M.setup()
   })
 
   -- Python
-  lspconfig.pyright.setup({
-    capabilities = capabilities,
+  setup_lsp("pyright", {
     settings = {
       python = {
         analysis = {
@@ -83,8 +92,7 @@ function M.setup()
   })
 
   -- Lua
-  lspconfig.lua_ls.setup({
-    capabilities = capabilities,
+  setup_lsp("lua_ls", {
     settings = {
       Lua = {
         runtime = {
@@ -107,13 +115,10 @@ function M.setup()
   })
 
   -- Bash
-  lspconfig.bashls.setup({
-    capabilities = capabilities,
-  })
+  setup_lsp("bashls", {})
 
   -- JSON
-  lspconfig.jsonls.setup({
-    capabilities = capabilities,
+  setup_lsp("jsonls", {
     settings = {
       json = {
         schemas = require("schemastore").json.schemas(),
@@ -123,8 +128,7 @@ function M.setup()
   })
 
   -- YAML
-  lspconfig.yamlls.setup({
-    capabilities = capabilities,
+  setup_lsp("yamlls", {
     settings = {
       yaml = {
         schemaStore = {

@@ -259,6 +259,14 @@ fi
 
 step "Setting up ~/.claude..."
 
+# Save settings.json FIRST before nuking anything
+SETTINGS_BACKUP=""
+if [[ -f "$HOME/.claude/settings.json" ]]; then
+    SETTINGS_BACKUP="/tmp/.claude.settings.backup.$(date +%s).json"
+    cp "$HOME/.claude/settings.json" "$SETTINGS_BACKUP"
+    info "  Saved existing settings.json to temp location"
+fi
+
 if [[ -d "$HOME/.claude" ]]; then
     if [[ -L "$HOME/.claude" ]]; then
         info "  ~/.claude is already a symlink, removing..."
@@ -295,35 +303,32 @@ fi
 
 step "Installing Get Shit Done..."
 
-# Backup existing settings.json before GSD install
-SETTINGS_BACKUP=""
-if [[ -f "$HOME/.claude/settings.json" ]]; then
-    SETTINGS_BACKUP="$HOME/.claude/settings.json.backup.$(date +%s)"
-    cp "$HOME/.claude/settings.json" "$SETTINGS_BACKUP"
-    info "  Backed up existing settings.json"
-fi
-
 npx get-shit-done-cc --claude --global
 
 info "  ✓ GSD installed!"
 
-# Merge settings.json if we had a backup
+# Merge settings.json if we had a backup from earlier
 if [[ -n "$SETTINGS_BACKUP" ]] && [[ -f "$SETTINGS_BACKUP" ]]; then
     step "Merging settings.json..."
 
     if [[ -f "$HOME/.claude/settings.json" ]]; then
-        # Merge: new settings take precedence, but preserve existing keys not in new
-        MERGED=$(jq -s '.[0] * .[1]' "$SETTINGS_BACKUP" "$HOME/.claude/settings.json" 2>/dev/null)
+        # Merge: old settings take precedence for existing keys, new settings add their keys
+        MERGED=$(jq -s '.[1] * .[0]' "$SETTINGS_BACKUP" "$HOME/.claude/settings.json" 2>/dev/null)
         if [[ $? -eq 0 ]] && [[ -n "$MERGED" ]]; then
             echo "$MERGED" > "$HOME/.claude/settings.json"
             info "  ✓ Merged existing settings with new GSD settings"
+            info "  Your original settings were preserved, GSD added its settings"
         else
             warn "  Failed to merge settings, keeping new GSD settings"
         fi
+    else
+        # GSD didn't create settings.json, just restore the backup
+        cp "$SETTINGS_BACKUP" "$HOME/.claude/settings.json"
+        info "  ✓ Restored your original settings.json"
     fi
 
-    # Keep backup for safety
-    info "  Original settings saved at: $SETTINGS_BACKUP"
+    # Clean up temp backup
+    rm "$SETTINGS_BACKUP"
 fi
 
 # ─────────────────────────────────────────────────────────────

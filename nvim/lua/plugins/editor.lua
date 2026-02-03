@@ -25,20 +25,11 @@ return {
     "folke/which-key.nvim",
     event = "VeryLazy",
     opts = {
-      plugins = {
-        spelling = {
-          enabled = true,
-        },
+      spec = {
+        { "<leader>f", group = "find" },
+        { "<leader>c", group = "code" },
+        { "<leader>a", group = "ai" },
       },
     },
-    config = function(_, opts)
-      local wk = require("which-key")
-      wk.setup(opts)
-      wk.register({
-        ["<leader>f"] = { name = "+find" },
-        ["<leader>c"] = { name = "+code" },
-        ["<leader>a"] = { name = "+ai" },
-      })
-    end,
   },
 }
