@@ -201,6 +201,45 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────
+# Setup Neovim Configuration
+# ─────────────────────────────────────────────────────────────
+
+step "Setting up Neovim configuration..."
+
+if has_cmd nvim; then
+    # Check if ~/.config/nvim exists
+    if [[ -d "$HOME/.config/nvim" ]] || [[ -L "$HOME/.config/nvim" ]]; then
+        # Check if it's already our symlink
+        if [[ -L "$HOME/.config/nvim" ]] && [[ "$(readlink "$HOME/.config/nvim")" == "$SCRIPT_DIR/nvim" ]]; then
+            info "  ✓ Neovim config already symlinked to dotClaude/nvim"
+        else
+            # Backup existing config
+            NVIM_BACKUP="$HOME/.config/nvim.backup.$(date +%s)"
+            warn "  Backing up existing ~/.config/nvim to $NVIM_BACKUP"
+            if [[ -L "$HOME/.config/nvim" ]]; then
+                rm "$HOME/.config/nvim"
+            else
+                mv "$HOME/.config/nvim" "$NVIM_BACKUP"
+            fi
+
+            # Create symlink
+            ln -s "$SCRIPT_DIR/nvim" "$HOME/.config/nvim"
+            info "  ✓ Linked $SCRIPT_DIR/nvim to ~/.config/nvim"
+            info "  Neovim will install plugins on first launch"
+        fi
+    else
+        # No existing config, just symlink
+        mkdir -p "$HOME/.config"
+        ln -s "$SCRIPT_DIR/nvim" "$HOME/.config/nvim"
+        info "  ✓ Linked $SCRIPT_DIR/nvim to ~/.config/nvim"
+        info "  Neovim will install plugins on first launch"
+    fi
+else
+    warn "  Neovim not installed, skipping config setup"
+    warn "  Install neovim and run setup.sh again to configure"
+fi
+
+# ─────────────────────────────────────────────────────────────
 # Backup existing ~/.claude
 # ─────────────────────────────────────────────────────────────
 
@@ -257,6 +296,7 @@ echo "Your ~/.claude is now configured with:"
 echo "  - Homebrew package manager"
 echo "  - Node.js + npm"
 echo "  - Claude Code CLI"
+echo "  - Neovim configuration (symlinked to ~/.config/nvim)"
 echo "  - commands/ (alphie, onboard, review, etc.)"
 echo "  - skills/ (review-*, paul-graham, etc.)"
 echo "  - Get Shit Done workflow system"

@@ -6,31 +6,71 @@ A curated `.claude` configuration directory that extends Claude Code with custom
 
 This repository provides a pre-configured Claude Code environment optimized for professional software development workflows. It includes:
 
+- **Portable Neovim Configuration** with LSP, completion, fuzzy finding, and Claude Code integration
 - **Custom Commands** for workflow automation (onboarding, epic orchestration, code review)
 - **Code Review Skills** specialized for different quality dimensions
 - **Integration with `prog`** for cross-session task management
 
 ## Installation
 
-1. Clone this repository to your preferred location:
+### Automated Setup (Recommended)
+
+1. Clone this repository:
    ```bash
-   git clone <your-repo-url> ~/dotclaude
+   git clone <your-repo-url> ~/projects/dotClaude
+   cd ~/projects/dotClaude
    ```
 
-2. Link it as your `.claude` configuration directory:
+2. Run the setup script:
+   ```bash
+   ./setup.sh
+   ```
+
+   This will:
+   - Install Homebrew (if not present)
+   - Install Node.js and npm
+   - Install Claude Code CLI
+   - Setup Neovim configuration (symlink `~/.config/nvim`)
+   - Copy commands and skills to `~/.claude`
+   - Install Get Shit Done workflow system
+
+3. Start using Claude Code:
+   ```bash
+   claude
+   ```
+
+### Manual Installation
+
+If you prefer manual setup or already have some components:
+
+1. Clone the repository:
+   ```bash
+   git clone <your-repo-url> ~/projects/dotClaude
+   ```
+
+2. Link Neovim configuration:
+   ```bash
+   ln -s ~/projects/dotClaude/nvim ~/.config/nvim
+   ```
+
+3. Link Claude Code configuration:
    ```bash
    # Option 1: Symlink to your project
-   ln -s ~/dotclaude /path/to/your/project/.claude
+   ln -s ~/projects/dotClaude /path/to/your/project/.claude
 
-   # Option 2: Set as global default (if supported by Claude Code)
-   # Check Claude Code documentation for global config options
+   # Option 2: Copy to global ~/.claude
+   cp -r ~/projects/dotClaude/commands ~/.claude/
+   cp -r ~/projects/dotClaude/skills ~/.claude/
+   cp ~/projects/dotClaude/CLAUDE.md ~/.claude/
    ```
 
-3. Ensure `prog` CLI is installed and initialized:
+4. Install dependencies:
    ```bash
-   # Install prog (check prog documentation for installation)
-   # Initialize the database
-   prog init
+   # Install Claude Code CLI
+   npm install -g @anthropic-ai/claude-code
+
+   # Install Get Shit Done
+   npx get-shit-done-cc --claude --global
    ```
 
 ## Custom Commands
@@ -137,22 +177,66 @@ prog learn "insight" -c concept
 
 See the startup hook message for the complete prog workflow reference.
 
+## Neovim Configuration
+
+This repository includes a comprehensive, portable Neovim configuration with:
+
+- **LSP Support**: TypeScript, Go, Rust, Python, Lua, Bash, JSON, YAML
+- **Auto-install**: Mason automatically installs LSP servers on first launch
+- **Completion**: nvim-cmp with LSP, snippets, buffer, and path sources
+- **Fuzzy Finding**: Telescope for files and grep
+- **Git Integration**: Gitsigns + Fugitive
+- **Claude Code Integration**: Preserved existing keybindings
+- **Themes**: Catppuccin, Tokyo Night, Rose Pine
+
+See [nvim/README.md](nvim/README.md) for detailed documentation.
+
+### Quick Start
+
+After running `./setup.sh`, launch Neovim:
+
+```bash
+nvim
+```
+
+On first launch, plugins and LSP servers will auto-install (~2-3 minutes).
+
+### Key Keybindings
+
+- `<leader>` = Space
+- `<leader>ff` - Find files (Telescope)
+- `<leader>fg` - Live grep
+- `gd` - Go to definition
+- `K` - Hover documentation
+- `<leader>ac` - Toggle Claude Code
+- `<leader>as` - Send selection to Claude (visual mode)
+
 ## Project Structure
 
 ```
-dotclaude/
-├── commands/          # Custom workflow commands
-│   ├── alphie.md     # Epic orchestrator
-│   ├── ralphie.md    # Task worker
-│   ├── onboard.md    # Session initialization
-│   └── review.md     # Code review automation
-├── skills/           # Specialized code review skills
+dotClaude/
+├── nvim/                  # Neovim configuration
+│   ├── init.lua          # Entry point
+│   ├── README.md         # Neovim documentation
+│   └── lua/
+│       ├── config/       # Core config (options, keymaps)
+│       ├── plugins/      # Plugin configurations
+│       └── utils/        # LSP server configs
+├── commands/             # Custom workflow commands
+│   ├── onboard.md       # Session initialization
+│   └── review.md        # Code review automation
+├── skills/              # Specialized code review skills
 │   ├── review-architecture/
 │   ├── review-readability/
 │   ├── review-security/
 │   ├── review-simplicity/
 │   ├── design-principles/
 │   └── remove-slop/
+├── themes/              # Custom theme storage
+│   └── nvim/           # Custom Neovim colorschemes
+├── .claude/            # Claude Code settings
+├── setup.sh            # Automated setup script
+├── CLAUDE.md           # Agent instructions
 └── README.md
 ```
 
@@ -194,7 +278,18 @@ Typical development session:
 
 ## Requirements
 
-- Claude Code CLI
-- `prog` CLI tool (for task management)
-- Git (for worktree management in alphie/ralphie)
+- **Neovim** 0.9+ (for nvim configuration)
+- **Claude Code CLI** (installed by setup.sh)
+- **Node.js** 18+ and npm (installed by setup.sh via Homebrew)
+- **Git** (for worktree management and version control)
+- **Homebrew** (macOS/Linux, installed by setup.sh)
+
+Optional:
+- **prog** CLI tool (for task management integration)
 - Project-specific: tests, linters, build tools mentioned in task specs
+
+## Platform Support
+
+- **macOS**: Full support via setup.sh
+- **Linux**: Full support via setup.sh
+- **Windows**: Manual installation required (WSL recommended)
