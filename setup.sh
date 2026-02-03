@@ -139,6 +139,7 @@ install_if_missing "git"
 install_if_missing "node"
 install_if_missing "npm" "node"  # npm comes with node
 install_if_missing "go" "go"
+install_if_missing "jq" "jq"  # For JSON merging
 
 # ─────────────────────────────────────────────────────────────
 # Install Optional Tools
@@ -181,13 +182,14 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────
-# Neovim Theme Check
+# Neovim Theme Setup
 # ─────────────────────────────────────────────────────────────
 
-step "Checking Neovim themes..."
+step "Setting up Neovim themes..."
 
+# Backup existing themes from current nvim config
 if [[ -d "$HOME/.config/nvim/colors" ]]; then
-    info "  Found nvim themes:"
+    info "  Found existing nvim themes:"
     ls -1 "$HOME/.config/nvim/colors" 2>/dev/null | while read -r theme; do
         echo "    - $theme"
     done
@@ -195,9 +197,21 @@ if [[ -d "$HOME/.config/nvim/colors" ]]; then
     # Copy themes to this repo for backup
     mkdir -p "$SCRIPT_DIR/themes/nvim"
     cp "$HOME/.config/nvim/colors/"* "$SCRIPT_DIR/themes/nvim/" 2>/dev/null || true
-    info "  Copied nvim themes to themes/nvim/"
-else
-    warn "  No nvim themes found at ~/.config/nvim/colors"
+    info "  Backed up nvim themes to themes/nvim/"
+fi
+
+# Copy custom themes from repo to nvim config
+if [[ -d "$SCRIPT_DIR/themes/nvim" ]]; then
+    # Count actual theme files (not README or .gitkeep)
+    THEME_COUNT=$(find "$SCRIPT_DIR/themes/nvim" -type f \( -name "*.vim" -o -name "*.lua" \) 2>/dev/null | wc -l)
+
+    if [[ $THEME_COUNT -gt 0 ]]; then
+        mkdir -p "$SCRIPT_DIR/nvim/colors"
+        cp "$SCRIPT_DIR/themes/nvim/"*.{vim,lua} "$SCRIPT_DIR/nvim/colors/" 2>/dev/null || true
+        info "  ✓ Copied $THEME_COUNT custom theme(s) to nvim/colors/"
+    else
+        info "  No custom themes found in themes/nvim/ (only .vim or .lua files are copied)"
+    fi
 fi
 
 # ─────────────────────────────────────────────────────────────
@@ -281,9 +295,36 @@ fi
 
 step "Installing Get Shit Done..."
 
+# Backup existing settings.json before GSD install
+SETTINGS_BACKUP=""
+if [[ -f "$HOME/.claude/settings.json" ]]; then
+    SETTINGS_BACKUP="$HOME/.claude/settings.json.backup.$(date +%s)"
+    cp "$HOME/.claude/settings.json" "$SETTINGS_BACKUP"
+    info "  Backed up existing settings.json"
+fi
+
 npx get-shit-done-cc --claude --global
 
 info "  ✓ GSD installed!"
+
+# Merge settings.json if we had a backup
+if [[ -n "$SETTINGS_BACKUP" ]] && [[ -f "$SETTINGS_BACKUP" ]]; then
+    step "Merging settings.json..."
+
+    if [[ -f "$HOME/.claude/settings.json" ]]; then
+        # Merge: new settings take precedence, but preserve existing keys not in new
+        MERGED=$(jq -s '.[0] * .[1]' "$SETTINGS_BACKUP" "$HOME/.claude/settings.json" 2>/dev/null)
+        if [[ $? -eq 0 ]] && [[ -n "$MERGED" ]]; then
+            echo "$MERGED" > "$HOME/.claude/settings.json"
+            info "  ✓ Merged existing settings with new GSD settings"
+        else
+            warn "  Failed to merge settings, keeping new GSD settings"
+        fi
+    fi
+
+    # Keep backup for safety
+    info "  Original settings saved at: $SETTINGS_BACKUP"
+fi
 
 # ─────────────────────────────────────────────────────────────
 # Done
