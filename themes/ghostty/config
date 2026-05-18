@@ -1,0 +1,79 @@
+# ──────────────────────────────────────────────
+#  Pacific Blue — a Ghostty theme
+#  Blue glass, cyan glow, and deep terminal navy
+# ──────────────────────────────────────────────
+
+# Typography
+font-family = Comic Mono
+font-size = 16
+adjust-cell-height = 25%
+
+# Background
+background = #07111f
+background-opacity = 0.72
+background-blur = macos-glass-clear
+
+# Foreground — soft blue-white, not harsh
+foreground = #d9f4ff
+
+# Cursor — cyan glow against the navy
+cursor-color = #35d2ff
+cursor-style = block
+cursor-style-blink = true
+
+# Selection — saturated panel blue
+selection-background = #0f4eb3
+selection-foreground = #ffffff
+
+# Window
+window-padding-x = 14
+window-padding-y = 10
+window-padding-balance = true
+macos-titlebar-style = transparent
+
+# ── ANSI palette ────────────────────────────
+# Built from deep navy, electric blue, cyan,
+# violet, and a little warm contrast
+
+# Black — deep navy
+palette = 0=#07164f
+# Red — neon coral
+palette = 1=#ff6b9a
+# Green — sea glass
+palette = 2=#3ce6ad
+# Yellow — warm marker
+palette = 3=#ffd36e
+# Blue — electric pool
+palette = 4=#1aa7ff
+# Magenta — violet blue
+palette = 5=#6f7cff
+# Cyan — glass glow
+palette = 6=#35d2ff
+# White — blue-white text
+palette = 7=#d9f4ff
+
+# Bright Black — muted cobalt
+palette = 8=#6f95cf
+# Bright Red — hot pink coral
+palette = 9=#ff8bb0
+# Bright Green — bright aqua mint
+palette = 10=#7fffd4
+# Bright Yellow — pale gold
+palette = 11=#ffe39a
+# Bright Blue — sky laser
+palette = 12=#67c7ff
+# Bright Magenta — lavender blue
+palette = 13=#9aa3ff
+# Bright Cyan — ice cyan
+palette = 14=#8eeaff
+# Bright White — whitecap
+palette = 15=#ffffff
+
+# Minimum contrast for readability against the deep blue
+minimum-contrast = 1.2
+
+# Shell integration — report CWD as surface title
+shell-integration-features = cursor,sudo,title
+
+# Splits inherit the focused pane's working directory
+split-inherit-working-directory = true
